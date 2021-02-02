@@ -65,7 +65,8 @@ class CaloriesCalculator(Calculator):
     def get_calories_remained(self):
         if super().get_today_stats() < self.limit:
             return f'Сегодня можно съесть что-нибудь ещё, ' \
-                   f'но с общей калорийностью не более {super().get_remained()} кКал'
+                   f'но с общей калорийностью ' \
+                   f'не более {super().get_remained()} кКал'
         elif super().get_today_stats() >= self.limit:
             return 'Хватит есть!'
 
@@ -98,4 +99,5 @@ class CashCalculator(Calculator):
             return 'Денег нет, держись'
         elif spent > self.limit:
             return f'Денег нет, держись: ' \
-                   f'твой долг - {abs(round((debt / rate), 2))} {currency_string}'
+                   f'твой долг - ' \
+                   f'{abs(round((debt / rate), 2))} {currency_string}'
