@@ -4,17 +4,16 @@ from datetime import timedelta
 
 class Record:
 
-    def __init__(self, amount, comment, date=''):
+    def __init__(self, amount, comment, date=None):
         self.amount = amount
         self.comment = comment
         self.date = date
-        moment_now = dt.datetime.now()
-        if len(date) != 0:
+        if date is not None:
             date_format = '%d.%m.%Y'
             written_date = dt.datetime.strptime(date, date_format)
             self.date = written_date.date()
         else:
-            self.date = moment_now.date()
+            self.date = dt.date.today()
 
     def show(self):
         print(f'{self.amount}, {self.comment}, {self.date}')
@@ -33,42 +32,34 @@ class Calculator:
         print(f'{self.records}')
 
     def get_today_stats(self):
-        total = 0
-        today = dt.datetime.now().date()
-        for record in self.records:
-            if record.date == today:
-                total += record.amount
-        return total
+        return sum([
+            record.amount for record in self.records
+            if record.date == dt.date.today()
+        ])
 
-    def get_remained(self):
-        remained_today = 0
-        total_today = 0
-        today = dt.datetime.now()
-        for record in self.records:
-            if record.date == today.date():
-                total_today += record.amount
-                remained_today = self.limit - total_today
-        return remained_today
+    def get_today_remained(self):
+        return self.limit - self.get_today_stats()
 
     def get_week_stats(self):
-        total_week = 0
-        today = dt.datetime.now()
-        seven_days_before = (today.date() - timedelta(7))
-        for record in self.records:
-            if record.date <= today.date() and record.date > seven_days_before:
-                total_week += record.amount
-        return total_week
+        week_ago = dt.date.today() - timedelta(days=7)
+        return sum([
+            record.amount for record in self.records
+            if week_ago < record.date <= dt.date.today()
+        ])
 
 
 class CaloriesCalculator(Calculator):
 
     def get_calories_remained(self):
-        if super().get_today_stats() < self.limit:
-            return f'Сегодня можно съесть что-нибудь ещё, ' \
-                   f'но с общей калорийностью ' \
-                   f'не более {super().get_remained()} кКал'
-        elif super().get_today_stats() >= self.limit:
+        in_my_stomach = self.get_today_stats()
+        if in_my_stomach >= self.limit:
             return 'Хватит есть!'
+        elif in_my_stomach < self.limit:
+            return (
+                'Сегодня можно съесть что-нибудь ещё, '
+                'но с общей калорийностью не более '
+                f'{self.get_today_remained()} кКал'
+            )
 
 
 class CashCalculator(Calculator):
@@ -76,28 +67,28 @@ class CashCalculator(Calculator):
     EURO_RATE = 91.56
     RUB_RATE = 1.00
 
-    def get_today_cash_remained(self, currency=''):
-        remained_money = super().get_remained()
-        spent = super().get_today_stats()
-        debt = self.limit - spent
-        rate = int
-        currency_string = str
-        if len(currency) == 0 or currency == 'rub':
-            rate = self.RUB_RATE
-            currency_string = 'руб'
-        elif currency == 'usd':
-            rate = self.USD_RATE
-            currency_string = 'USD'
-        elif currency == 'eur':
-            rate = self.EURO_RATE
-            currency_string = 'Euro'
+    def get_today_cash_remained(self, currency):
+        dict_currency = {
+            'rub': ('руб', self.RUB_RATE),
+            'usd': ('USD', self.USD_RATE),
+            'eur': ('Euro', self.EURO_RATE)
+        }
 
-        if spent < self.limit:
-            return f'На сегодня осталось ' \
-                   f'{round((remained_money / rate), 2)} {currency_string}'
-        elif spent == self.limit:
+        currency_string = dict_currency[currency][0]
+        rate = dict_currency[currency][1]
+        spent = self.get_today_stats()
+        remained_money = round((self.get_today_remained() / rate), 2)
+        debt = abs(round(((self.limit - spent) / rate), 2))
+
+        if spent == self.limit:
             return 'Денег нет, держись'
+        elif spent < self.limit:
+            return (
+                'На сегодня осталось '
+                f'{remained_money} {currency_string}'
+                    )
         elif spent > self.limit:
-            return f'Денег нет, держись: ' \
-                   f'твой долг - ' \
-                   f'{abs(round((debt / rate), 2))} {currency_string}'
+            return (
+                'Денег нет, держись: твой долг - '
+                f'{debt} {currency_string}'
+            )
