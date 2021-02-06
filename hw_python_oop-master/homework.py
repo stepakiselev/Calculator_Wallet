@@ -54,7 +54,7 @@ class CaloriesCalculator(Calculator):
         in_my_stomach = self.get_today_stats()
         if in_my_stomach >= self.limit:
             return 'Хватит есть!'
-        elif in_my_stomach < self.limit:
+        else:
             return (
                 'Сегодня можно съесть что-нибудь ещё, '
                 'но с общей калорийностью не более '
