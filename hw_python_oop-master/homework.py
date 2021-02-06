@@ -1,5 +1,4 @@
 import datetime as dt
-from datetime import timedelta
 
 
 class Record:
@@ -9,9 +8,8 @@ class Record:
         self.comment = comment
         self.date = date
         if date is not None:
-            date_format = '%d.%m.%Y'
-            written_date = dt.datetime.strptime(date, date_format)
-            self.date = written_date.date()
+            DATE_FORMAT = '%d.%m.%Y'
+            self.date = dt.datetime.strptime(date, DATE_FORMAT).date()
         else:
             self.date = dt.date.today()
 
@@ -32,19 +30,21 @@ class Calculator:
         print(f'{self.records}')
 
     def get_today_stats(self):
+        today = dt.date.today()
         return sum([
             record.amount for record in self.records
-            if record.date == dt.date.today()
+            if record.date == today
         ])
 
     def get_today_remained(self):
         return self.limit - self.get_today_stats()
 
     def get_week_stats(self):
-        week_ago = dt.date.today() - timedelta(days=7)
+        week_ago = dt.date.today() - dt.timedelta(days=7)
+        today = dt.date.today()
         return sum([
             record.amount for record in self.records
-            if week_ago < record.date <= dt.date.today()
+            if week_ago < record.date <= today
         ])
 
 
@@ -68,27 +68,27 @@ class CashCalculator(Calculator):
     RUB_RATE = 1.00
 
     def get_today_cash_remained(self, currency):
-        dict_currency = {
+        currency_dict = {
             'rub': ('руб', self.RUB_RATE),
             'usd': ('USD', self.USD_RATE),
             'eur': ('Euro', self.EURO_RATE)
         }
 
-        currency_string = dict_currency[currency][0]
-        rate = dict_currency[currency][1]
-        spent = self.get_today_stats()
-        remained_money = round((self.get_today_remained() / rate), 2)
-        debt = abs(round(((self.limit - spent) / rate), 2))
+        if currency not in currency_dict:
+            raise Exception('Такая валюта не поддерживается')
+        var1, var2 = currency_dict[currency]
 
-        if spent == self.limit:
+        spent = self.get_today_remained()
+        if spent == 0:
             return 'Денег нет, держись'
-        elif spent < self.limit:
-            return (
-                'На сегодня осталось '
-                f'{remained_money} {currency_string}'
-                    )
-        elif spent > self.limit:
+        remained_money = round((spent / var2), 2)                       # ?
+        if spent < 0:
             return (
                 'Денег нет, держись: твой долг - '
-                f'{debt} {currency_string}'
+                f'{abs(remained_money)} {var1}'
+            )
+        else:
+            return (
+                'На сегодня осталось '
+                f'{remained_money} {var1}'
             )
