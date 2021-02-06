@@ -1,4 +1,5 @@
 import datetime as dt
+DATE_FORMAT = '%d.%m.%Y'
 
 
 class Record:
@@ -6,9 +7,7 @@ class Record:
     def __init__(self, amount, comment, date=None):
         self.amount = amount
         self.comment = comment
-        self.date = date
         if date is not None:
-            DATE_FORMAT = '%d.%m.%Y'
             self.date = dt.datetime.strptime(date, DATE_FORMAT).date()
         else:
             self.date = dt.date.today()
@@ -51,15 +50,14 @@ class Calculator:
 class CaloriesCalculator(Calculator):
 
     def get_calories_remained(self):
-        in_my_stomach = self.get_today_stats()
-        if in_my_stomach >= self.limit:
+        in_my_stomach = self.get_today_remained()   # стоит ли создавать переменную in_my_stomach?
+        if in_my_stomach <= 0:                      # или проще работать с self.get_today_remained()?
             return 'Хватит есть!'
-        else:
-            return (
-                'Сегодня можно съесть что-нибудь ещё, '
-                'но с общей калорийностью не более '
-                f'{self.get_today_remained()} кКал'
-            )
+        return (
+            'Сегодня можно съесть что-нибудь ещё, '
+            'но с общей калорийностью не более '
+            f'{in_my_stomach} кКал'
+        )
 
 
 class CashCalculator(Calculator):
@@ -76,19 +74,18 @@ class CashCalculator(Calculator):
 
         if currency not in currency_dict:
             raise Exception('Такая валюта не поддерживается')
-        var1, var2 = currency_dict[currency]
+        currency_name, currency_rate = currency_dict[currency]
 
         spent = self.get_today_remained()
         if spent == 0:
             return 'Денег нет, держись'
-        remained_money = round((spent / var2), 2)                       # ?
+        remained_money = round((spent / currency_rate), 2)                       # ?
         if spent < 0:
             return (
                 'Денег нет, держись: твой долг - '
-                f'{abs(remained_money)} {var1}'
+                f'{abs(remained_money)} {currency_name}'
             )
-        else:
-            return (
-                'На сегодня осталось '
-                f'{remained_money} {var1}'
-            )
+        return (                                                   # просто оставить return?
+            'На сегодня осталось '
+            f'{remained_money} {currency_name}'
+        )
