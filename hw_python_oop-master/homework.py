@@ -50,8 +50,8 @@ class Calculator:
 class CaloriesCalculator(Calculator):
 
     def get_calories_remained(self):
-        in_my_stomach = self.get_today_remained()   # стоит ли создавать переменную in_my_stomach?
-        if in_my_stomach <= 0:                      # или проще работать с self.get_today_remained()?
+        in_my_stomach = self.get_today_remained()
+        if in_my_stomach <= 0:
             return 'Хватит есть!'
         return (
             'Сегодня можно съесть что-нибудь ещё, '
@@ -79,13 +79,13 @@ class CashCalculator(Calculator):
         spent = self.get_today_remained()
         if spent == 0:
             return 'Денег нет, держись'
-        remained_money = round((spent / currency_rate), 2)                       # ?
+        remained_money = round((spent / currency_rate), 2)
         if spent < 0:
             return (
                 'Денег нет, держись: твой долг - '
                 f'{abs(remained_money)} {currency_name}'
             )
-        return (                                                   # просто оставить return?
+        return (
             'На сегодня осталось '
             f'{remained_money} {currency_name}'
         )
