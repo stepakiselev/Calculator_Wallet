@@ -1,4 +1,4 @@
-# Calculator + wallet
+# Calculator(Calorie) + wallet
 ***
 #### Description
 
